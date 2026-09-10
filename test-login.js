@@ -5,7 +5,7 @@ async function test() {
   body.append('password', 'test');
   body.append('grant_type', 'password');
   
-  const res = await fetch('https://qldt.hcmc.ftu.edu.vn/api/auth/login', {
+  const res = await fetch('https://student.ueh.edu.vn/api/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: body.toString()

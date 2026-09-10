@@ -1,5 +1,5 @@
-// Portal APIs and Token Extraction
-const BASE_URL = 'https://qldt.hcmc.ftu.edu.vn';
+// Portal APIs and Token Extraction for UEH Student Portal
+const BASE_URL = 'https://student.ueh.edu.vn';
 
 export async function loginToPortal(studentId, password) {
   console.log(`[Login Flow] Initiating login for student ID: ${studentId}`);
@@ -41,9 +41,9 @@ export async function loginToPortal(studentId, password) {
     if (data.access_token) {
       console.log(`[Login Flow] Authentication successful! Access token received.`);
       const studentProfile = {
-        name: data.name || 'Sinh viên',
+        name: data.name || 'Sinh viên UEH',
         studentId: data.userName || studentId,
-        email: data.principal || `${studentId}@ftu.edu.vn`,
+        email: data.principal || `${studentId}@st.ueh.edu.vn`,
         role: data.roles === 'SINHVIEN' ? 'Sinh viên' : (data.roles || 'Sinh viên')
       };
       return {
@@ -67,7 +67,7 @@ export async function loginToPortal(studentId, password) {
 
 /**
  * Retrieves a valid session token.
- * Automatically re-logs in to the FTU portal using saved credentials
+ * Automatically re-logs in to the UEH portal using saved credentials
  * if the session token is expired, missing, or was signed out by the system.
  */
 export async function getSessionToken(forceRefresh = false) {
@@ -83,7 +83,7 @@ export async function getSessionToken(forceRefresh = false) {
 
       if (!studentId || !password) {
         resolve({
-          error: 'Vui lòng nhập Mã sinh viên và Mật khẩu trong phần Thông tin Cổng Đào Tạo',
+          error: 'Vui lòng nhập Mã sinh viên và Mật khẩu trong phần Thông tin Cổng Đào Tạo UEH',
           success: false
         });
         return;
@@ -99,7 +99,7 @@ export async function getSessionToken(forceRefresh = false) {
       
       // Automatically authenticate using user-provided credentials
       try {
-        console.log('[Login Flow] Authenticating to FTU portal with user-saved credentials...');
+        console.log('[Login Flow] Authenticating to UEH portal with user-saved credentials...');
         const result = await loginToPortal(studentId, password);
         if (result.success) {
           chrome.storage.local.set({
@@ -129,13 +129,12 @@ export function clearSessionToken() {
 
 const COMMON_HEADERS = (token) => ({
   'Authorization': `Bearer ${token}`,
-  'Content-Type': 'application/json',
-  'ua': '0%MTcwOTMyODcwNjIxMQ==%U2FsdGVkX1+zRTzkjt/0w7va9zBWypT1sAkHxi/Y/PU='
+  'Content-Type': 'application/json'
 });
 
 /**
  * Fetch wrapper with automatic session recovery:
- * If FTU portal returns HTTP 401/403 or PSC JSON payload { code: 401, message: 'notallowed-' },
+ * If UEH portal returns HTTP 401/403 or PSC JSON payload { code: 401, message: 'notallowed-' },
  * automatically re-authenticates with stored credentials and retries once.
  */
 async function fetchWithAutoRelogin(url, body, currentToken) {
@@ -146,7 +145,6 @@ async function fetchWithAutoRelogin(url, body, currentToken) {
     body: JSON.stringify(body)
   });
 
-  // PSC Edusoft server can return HTTP 200 with { result: false, code: 401, message: 'notallowed-' }
   let isUnauthorized = res.status === 401 || res.status === 403;
   if (!isUnauthorized && res.ok) {
     try {
@@ -158,7 +156,6 @@ async function fetchWithAutoRelogin(url, body, currentToken) {
     } catch (e) {}
   }
 
-  // If session was signed out by the system, auto re-login and retry
   if (isUnauthorized) {
     console.warn(`[Portal API] Session expired or unauthorized for ${url}. Attempting automatic re-login...`);
     const session = await getSessionToken(true);
@@ -183,7 +180,7 @@ export async function getActiveSemesterInfo(token) {
   const semData = json.data || json;
   if (!semData) {
     if (json.code === 401 || String(json.message || '').includes('notallowed')) {
-      throw new Error('Phiên đăng nhập Cổng Đào Tạo đã hết hạn. Vui lòng xác thực lại.');
+      throw new Error('Phiên đăng nhập Cổng Đào Tạo UEH đã hết hạn. Vui lòng xác thực lại.');
     }
     throw new Error(json.message || 'Không tìm thấy dữ liệu học kỳ');
   }
@@ -209,8 +206,11 @@ export async function getActiveSemester(token) {
 
 export async function getSchedule(token, hoc_ky) {
   const { res } = await fetchWithAutoRelogin(`${BASE_URL}/api/sch/w-locdstkbtuanusertheohocky`, {
-    filter: { hoc_ky },
-    additional: { paging: { limit: 1000, page: 1 } }
+    filter: { hoc_ky, ten_hoc_ky: "" },
+    additional: {
+      paging: { limit: 1000, page: 1 },
+      ordering: [{ name: null, order_type: null }]
+    }
   }, token);
 
   if (!res.ok) throw new Error(`Failed to fetch /tkb-tuan schedule (HTTP ${res.status})`);
@@ -218,7 +218,7 @@ export async function getSchedule(token, hoc_ky) {
   const scheduleObj = data.data || data;
   if (!scheduleObj) {
     if (data.code === 401 || String(data.message || '').includes('notallowed')) {
-      throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng kết nối lại tài khoản FTU.');
+      throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng kết nối lại tài khoản UEH.');
     }
     throw new Error(data.message || 'No schedule data returned from /tkb-tuan');
   }
@@ -242,54 +242,54 @@ export async function getSchedule(token, hoc_ky) {
 }
 
 /**
- * Generates a realistic FTU semester schedule spanning 20 academic weeks.
+ * Generates a realistic UEH semester schedule spanning 20 academic weeks.
  * Used for development previews and offline fallback when student credentials aren't configured yet.
  */
-export function generateDefaultFtuSchedule() {
+export function generateDefaultUehSchedule() {
   const weeks = [];
   const baseStart = new Date(2026, 8, 7); // Monday, September 7, 2026
 
   const standardScheduleTemplate = [
     {
-      ma_mon: 'ESP341',
-      ten_mon: 'Tiếng Anh thương mại 1',
-      ma_lop: 'ESP341.1_LT',
-      ten_lop: 'K62.KDQT',
-      ma_phong: 'B301',
-      ten_giang_vien: 'ThS. Nguyễn Thu Hằng',
+      ma_mon: 'ECO101',
+      ten_mon: 'Kinh tế vi mô',
+      ma_lop: 'ECO101_01',
+      ten_lop: 'K52.01',
+      ma_phong: 'A.103',
+      ten_giang_vien: 'PGS.TS Nguyễn Văn A',
       dayOfWeekOffset: 0, // Thứ 2
       tiet_bat_dau: 1,
       so_tiet: 3
     },
     {
-      ma_mon: 'TMA408',
-      ten_mon: 'Thanh toán Quốc tế',
-      ma_lop: 'TMA408.2_LT',
-      ten_lop: 'K62.TCDN',
-      ma_phong: 'B205',
-      ten_giang_vien: 'PGS.TS Trần Thị Phương',
+      ma_mon: 'ACC201',
+      ten_mon: 'Nguyên lý kế toán',
+      ma_lop: 'ACC201_03',
+      ten_lop: 'K52.02',
+      ma_phong: 'B.204',
+      ten_giang_vien: 'ThS. Trần Thị B',
       dayOfWeekOffset: 2, // Thứ 4
       tiet_bat_dau: 7,
       so_tiet: 3
     },
     {
-      ma_mon: 'KTE306',
-      ten_mon: 'Kinh tế lượng',
-      ma_lop: 'KTE306.4_LT',
-      ten_lop: 'K62.KTQT',
-      ma_phong: 'A204',
-      ten_giang_vien: 'TS. Lê Hoàng Phúc',
+      ma_mon: 'FIN301',
+      ten_mon: 'Tài chính doanh nghiệp',
+      ma_lop: 'FIN301_02',
+      ten_lop: 'K52.01',
+      ma_phong: 'C.305',
+      ten_giang_vien: 'TS. Lê Văn C',
       dayOfWeekOffset: 3, // Thứ 5
       tiet_bat_dau: 4,
       so_tiet: 3
     },
     {
-      ma_mon: 'MKT401',
-      ten_mon: 'Marketing Quốc tế',
-      ma_lop: 'MKT401.1_LT',
-      ten_lop: 'K62.KDQT',
-      ma_phong: 'B102',
-      ten_giang_vien: 'ThS. Phạm Thu Trang',
+      ma_mon: 'MKT101',
+      ten_mon: 'Marketing căn bản',
+      ma_lop: 'MKT101_05',
+      ten_lop: 'K52.03',
+      ma_phong: 'A.401',
+      ten_giang_vien: 'ThS. Phạm Thị D',
       dayOfWeekOffset: 4, // Thứ 6
       tiet_bat_dau: 1,
       so_tiet: 3
@@ -326,18 +326,17 @@ export function generateDefaultFtuSchedule() {
       });
     });
 
-    // Add a makeup class in Week 2 and Week 5
     if (w === 1 || w === 4) {
       const makeupDate = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + 5); // Saturday
       const makeupDateIso = `${makeupDate.getFullYear()}-${pad(makeupDate.getMonth() + 1)}-${pad(makeupDate.getDate())}T00:00:00`;
       weekClasses.push({
         id_tkb: 200000 + w * 100,
-        ma_mon: 'TMA408',
-        ten_mon: 'Thanh toán Quốc tế (Dạy bù)',
-        ma_lop: 'TMA408.2_LT',
-        ten_lop: 'K62.TCDN',
-        ma_phong: 'B205',
-        ten_giang_vien: 'PGS.TS Trần Thị Phương',
+        ma_mon: 'FIN301',
+        ten_mon: 'Tài chính doanh nghiệp (Dạy bù)',
+        ma_lop: 'FIN301_02',
+        ten_lop: 'K52.01',
+        ma_phong: 'C.305',
+        ten_giang_vien: 'TS. Lê Văn C',
         ngay_hoc: makeupDateIso,
         tiet_bat_dau: 7,
         so_tiet: 3,
@@ -362,10 +361,8 @@ export function generateDefaultFtuSchedule() {
   };
 }
 
-/**
- * Verifies that the app can successfully access /tkb-tuan schedule data.
- * Connection is indicated as successful ONLY IF this verification passes.
- */
+export const generateDefaultFtuSchedule = generateDefaultUehSchedule;
+
 export async function verifyTkbTuanAccess(token) {
   try {
     const semInfo = await getActiveSemesterInfo(token);
@@ -421,12 +418,8 @@ export async function verifyTkbTuanAccess(token) {
   }
 }
 
-/**
- * Extracts class sessions for a specific date (defaults to today Vietnam time UTC+7)
- */
 export function extractClassesFromSchedule(scheduleData, targetDate = new Date()) {
   if (!scheduleData || !scheduleData.ds_tuan_tkb) return [];
-  // Format targetDate in Vietnam timezone (UTC+7)
   const d = new Date(targetDate.getTime() + (7 * 60 + targetDate.getTimezoneOffset()) * 60000);
   const yyyy = d.getFullYear();
   const mm = String(d.getMonth() + 1).padStart(2, '0');
@@ -441,7 +434,6 @@ export function extractClassesFromSchedule(scheduleData, targetDate = new Date()
       }
     });
   });
-  // Sort by start period
   classes.sort((a, b) => (Number(a.tiet_bat_dau) || 0) - (Number(b.tiet_bat_dau) || 0));
   return { classes, dateStr };
 }
@@ -475,4 +467,3 @@ export async function savePortalCredentials(studentId, password) {
     });
   });
 }
-

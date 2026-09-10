@@ -5,7 +5,7 @@ import { syncScheduleToGoogleCalendar, checkAuth } from './calendarService.js';
 
 // Listen for alarm triggers
 chrome.alarms.onAlarm.addListener(async (alarm) => {
-  if (alarm.name === 'ftuAutoSyncAlarm') {
+  if (alarm.name === 'uehAutoSyncAlarm') {
     console.log('[Background Service Worker] Executing scheduled auto-sync...');
     await runScheduledBackgroundSync();
   }
@@ -68,7 +68,7 @@ function calculateNextAlarmTime(timeStr = '06:00', frequency = 'daily', targetDa
 export async function configureAutoSyncAlarm() {
   return new Promise((resolve) => {
     chrome.storage.local.get(['autoSyncEnabled', 'autoSyncFreq', 'autoSyncDay', 'autoSyncTime'], async (res) => {
-      await chrome.alarms.clear('ftuAutoSyncAlarm');
+      await chrome.alarms.clear('uehAutoSyncAlarm');
 
       if (!res.autoSyncEnabled) {
         console.log('[Background Service Worker] Auto-sync is disabled by user.');
@@ -82,7 +82,7 @@ export async function configureAutoSyncAlarm() {
       const nextWhen = calculateNextAlarmTime(timeStr, freq, day);
       const periodInMinutes = freq === 'weekly' ? 7 * 24 * 60 : 24 * 60;
 
-      chrome.alarms.create('ftuAutoSyncAlarm', {
+      chrome.alarms.create('uehAutoSyncAlarm', {
         when: nextWhen,
         periodInMinutes
       });
@@ -137,7 +137,7 @@ async function runScheduledBackgroundSync() {
 
     const session = await getSessionToken();
     if (!session || !session.success || !session.token) {
-      console.warn('[Background Sync] FTU session expired. Auto-login needed.');
+      console.warn('[Background Sync] UEH session expired. Auto-login needed.');
       return;
     }
 
@@ -155,7 +155,7 @@ async function runScheduledBackgroundSync() {
       chrome.notifications.create({
         type: 'basic',
         iconUrl: 'icon.png',
-        title: 'FTU Schedule Sync',
+        title: 'UEH Schedule Sync',
         message: `Tự động đồng bộ: ${syncResult.insertedCount} tiết mới, ${syncResult.updatedCount} cập nhật phòng học.`
       });
     }

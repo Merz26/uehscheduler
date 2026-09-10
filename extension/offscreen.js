@@ -1,5 +1,5 @@
 /**
- * Offscreen Document Worker for FTU Portal Auto-Login & Session Recovery.
+ * Offscreen Document Worker for UEH Portal Auto-Login & Session Recovery.
  * Runs in an offscreen context to perform DOM-level authentication if REST
  * API token renewal requires cookie renewal, and cleanly notifies background.
  */
@@ -15,7 +15,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 async function performDomLogin(studentId, password) {
   console.log('[Offscreen Worker] Performing auto-login session recovery for:', studentId);
-  const endpoint = 'https://qldt.hcmc.ftu.edu.vn/api/auth/login';
+  const endpoint = 'https://student.ueh.edu.vn/api/auth/login';
   
   const body = new URLSearchParams();
   body.append('username', studentId);
@@ -39,9 +39,9 @@ async function performDomLogin(studentId, password) {
   }
 
   const studentProfile = {
-    name: data.name || 'Sinh viên',
+    name: data.name || 'Sinh viên UEH',
     studentId: data.userName || studentId,
-    email: data.principal || `${studentId}@ftu.edu.vn`,
+    email: data.principal || `${studentId}@st.ueh.edu.vn`,
     role: data.roles === 'SINHVIEN' ? 'Sinh viên' : (data.roles || 'Sinh viên')
   };
 

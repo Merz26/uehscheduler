@@ -6,7 +6,7 @@ import {
   savePortalCredentials, 
   getStoredPortalCredentials,
   portalLogin,
-  generateDefaultFtuSchedule
+  generateDefaultUehSchedule
 } from './portalService.js';
 
 import { 
@@ -192,34 +192,34 @@ function detectWindowMode() {
 
 // Initial entry point with document.readyState check (fixes module deferral race condition)
 async function initApp() {
-  console.log('[FTU Sync] Initializing popup application...');
+  console.log('[UEH Sync] Initializing popup application...');
   detectWindowMode();
   // 1. Immediately bind UI events so tabs and buttons are 100% interactive without waiting for network/storage
   try {
     bindUIEvents();
   } catch (err) {
-    console.error('[FTU Sync] Error binding UI events:', err);
+    console.error('[UEH Sync] Error binding UI events:', err);
   }
 
   // 2. Load stored preferences & theme
   try {
     await loadStoredPreferences();
   } catch (err) {
-    console.warn('[FTU Sync] Stored preferences load warning:', err);
+    console.warn('[UEH Sync] Stored preferences load warning:', err);
   }
 
   // 3. Update internationalized labels
   try {
     updateI18nLabels();
   } catch (err) {
-    console.warn('[FTU Sync] i18n update warning:', err);
+    console.warn('[UEH Sync] i18n update warning:', err);
   }
 
   // 4. Run initial connection check and route guard
   try {
     await runInitialConnectionCheck();
   } catch (err) {
-    console.warn('[FTU Sync] Initial connection check warning:', err);
+    console.warn('[UEH Sync] Initial connection check warning:', err);
   }
 }
 
@@ -329,7 +329,7 @@ async function loadStoredPreferences() {
 
 /**
  * Intelligent Route Guards on Launch:
- * Evaluates Google OAuth & FTU Portal tokens.
+ * Evaluates Google OAuth & UEH Portal tokens.
  * Fallback to Accounts tab if either is disconnected; otherwise default to Schedule.
  */
 async function runInitialConnectionCheck() {
@@ -349,7 +349,7 @@ async function runInitialConnectionCheck() {
     console.warn('Google check failed:', e);
   }
 
-  // 2. Check FTU Portal status
+  // 2. Check UEH Portal status
   try {
     const creds = await getStoredPortalCredentials();
     if (creds && creds.studentId && creds.password) {
@@ -401,7 +401,7 @@ async function runInitialConnectionCheck() {
 async function loadScheduleData(forceRefresh = false) {
   const weekSelect = document.getElementById('select_week_dropdown');
   if (weekSelect && (!state.scheduleData || forceRefresh)) {
-    weekSelect.innerHTML = `<option value="-1">⏳ ${t('loading_schedule') || 'Đang tải lịch học từ FTU...'}</option>`;
+    weekSelect.innerHTML = `<option value="-1">⏳ ${t('loading_schedule') || 'Đang tải lịch học từ UEH...'}</option>`;
   }
 
   // 1. Try to restore from cachedSchedule first if not forcing refresh
@@ -474,7 +474,7 @@ async function loadScheduleData(forceRefresh = false) {
 
   // 3. Fallback: If no live data and no cache (e.g. preview mode or first run without credentials)
   if (!state.scheduleData || !state.scheduleData.ds_tuan_tkb) {
-    state.scheduleData = generateDefaultFtuSchedule();
+    state.scheduleData = generateDefaultUehSchedule();
     state.semesterInfo = { hoc_ky: 20261, ten_hoc_ky: 'Học kỳ 1 (2026 - 2027)' };
     const chip = document.getElementById('active_semester_chip');
     if (chip) chip.textContent = state.semesterInfo.ten_hoc_ky;
@@ -1456,7 +1456,7 @@ async function handleSavePortalCreds() {
       switchView('view_schedule');
     }
 
-    alert('Xác thực Cổng Đào Tạo FTU thành công!');
+    alert('Xác thực Cổng Đào Tạo UEH thành công!');
   } catch (err) {
     alert(`Xác thực thất bại: ${err.message}`);
   } finally {
@@ -1494,7 +1494,7 @@ async function handleDiagPing(type) {
       const v = await verifyPortalAccess(session.token);
       const latency = Math.round(performance.now() - t0);
       if (weekStatus) weekStatus.textContent = '✓ 200';
-      if (out) out.textContent = `[GET /tkb-tuan] OK (${latency}ms)\nTìm thấy ${v.count} tuần học trực tiếp từ API qldt.hcmc.ftu.edu.vn`;
+      if (out) out.textContent = `[GET /tkb-tuan] OK (${latency}ms)\nTìm thấy ${v.count} tuần học trực tiếp từ API student.ueh.edu.vn`;
     } catch (e) {
       if (weekStatus) weekStatus.textContent = '✗ ERR';
       if (out) out.textContent = `[GET /tkb-tuan] Failed: ${e.message}`;
@@ -1513,7 +1513,7 @@ function handleExportSemesterICS() {
   const events = convertPortalScheduleToEvents(state.scheduleData);
   const ics = generateICS(events);
   const semName = state.semesterInfo?.hoc_ky || 'semester';
-  downloadICS(ics, `FTU_TKB_${semName}.ics`);
+  downloadICS(ics, `UEH_TKB_${semName}.ics`);
 }
 
 /**
@@ -1580,7 +1580,7 @@ function updateAccountCardsUI(isGoogleOk, isPortalOk) {
 
   if (isPortalOk && state.portalProfile) {
     if (pBadge) { pBadge.className = 'badge badge-success'; pBadge.textContent = t('portal_verified'); }
-    if (pName) pName.textContent = state.portalProfile.name || (getLang() === 'en' ? 'FTU Student' : 'Sinh viên FTU');
+    if (pName) pName.textContent = state.portalProfile.name || (getLang() === 'en' ? 'UEH Student' : 'Sinh viên UEH');
     if (pSub) pSub.style.display = 'block';
     if (dId) dId.textContent = state.portalProfile.studentId || '';
     if (dEmail) dEmail.textContent = state.portalProfile.email || '';

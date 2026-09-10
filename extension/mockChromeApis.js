@@ -9,7 +9,7 @@
                              typeof chrome.runtime.getURL === 'function';
 
   if (isGenuineExtension) {
-    console.log('[FTU Sync] Genuine Chrome Extension environment detected.');
+    console.log('[UEH Sync] Genuine Chrome Extension environment detected.');
     return;
   }
 
@@ -317,5 +317,5 @@
     }
   } catch (e) {}
 
-  console.log('[FTU Sync] Mock Chrome APIs initialized successfully.');
+  console.log('[UEH Sync] Mock Chrome APIs initialized successfully.');
 })();

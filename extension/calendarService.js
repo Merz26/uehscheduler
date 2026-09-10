@@ -65,7 +65,7 @@ async function calendarApiFetch(url, options = {}) {
       try { body = JSON.parse(options.body || '{}'); } catch(e) {}
       const newCal = {
         id: 'cal_' + Date.now(),
-        summary: body.summary || 'FTU Schedule',
+        summary: body.summary || 'UEH Schedule',
         description: body.description || '',
         timeZone: body.timeZone || 'Asia/Ho_Chi_Minh'
       };
@@ -294,7 +294,7 @@ export async function checkAuth() {
 export async function getOrCreateFtuCalendar(token) {
   const cachedCalId = await new Promise((resolve) => {
     if (typeof chrome !== 'undefined' && chrome.storage?.local) {
-      chrome.storage.local.get(['ftuCalendarId'], (res) => resolve(res.ftuCalendarId || null));
+      chrome.storage.local.get(['uehCalendarId'], (res) => resolve(res.uehCalendarId || null));
     } else {
       resolve(null);
     }
@@ -307,11 +307,11 @@ export async function getOrCreateFtuCalendar(token) {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (checkRes.ok) {
-        return { calendarId: cachedCalId, calendarName: 'FTU Schedule', isSecondary: true };
+        return { calendarId: cachedCalId, calendarName: 'UEH Schedule', isSecondary: true };
       } else {
         console.warn('[Google Calendar] Cached calendar ID is no longer valid or was deleted. Clearing cached ID.');
         if (typeof chrome !== 'undefined' && chrome.storage?.local) {
-          chrome.storage.local.remove(['ftuCalendarId']);
+          chrome.storage.local.remove(['uehCalendarId']);
         }
       }
     } catch (e) {
@@ -326,12 +326,12 @@ export async function getOrCreateFtuCalendar(token) {
 
     if (listRes.ok) {
       const listData = await listRes.json();
-      const existing = (listData.items || []).find(c => c.summary === 'FTU Schedule');
+      const existing = (listData.items || []).find(c => c.summary === 'UEH Schedule');
       if (existing) {
         if (typeof chrome !== 'undefined' && chrome.storage?.local) {
-          chrome.storage.local.set({ ftuCalendarId: existing.id });
+          chrome.storage.local.set({ uehCalendarId: existing.id });
         }
-        return { calendarId: existing.id, calendarName: 'FTU Schedule', isSecondary: true };
+        return { calendarId: existing.id, calendarName: 'UEH Schedule', isSecondary: true };
       }
     }
 
@@ -342,8 +342,8 @@ export async function getOrCreateFtuCalendar(token) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        summary: 'FTU Schedule',
-        description: 'Thời khóa biểu Trường Đại học Ngoại Thương (FTU) được đồng bộ tự động',
+        summary: 'UEH Schedule',
+        description: 'Thời khóa biểu Trường Đại học Kinh tế TP. Hồ Chí Minh (UEH) được đồng bộ tự động',
         timeZone: 'Asia/Ho_Chi_Minh'
       })
     });
@@ -351,15 +351,15 @@ export async function getOrCreateFtuCalendar(token) {
     if (createRes.ok) {
       const created = await createRes.json();
       if (typeof chrome !== 'undefined' && chrome.storage?.local) {
-        chrome.storage.local.set({ ftuCalendarId: created.id });
+        chrome.storage.local.set({ uehCalendarId: created.id });
       }
-      return { calendarId: created.id, calendarName: 'FTU Schedule', isSecondary: true };
+      return { calendarId: created.id, calendarName: 'UEH Schedule', isSecondary: true };
     }
   } catch (err) {
     console.warn('[Google Calendar] Secondary calendar creation failed. Falling back to primary:', err);
   }
 
-  return { calendarId: 'primary', calendarName: 'Primary (FTU Schedule)', isSecondary: false };
+  return { calendarId: 'primary', calendarName: 'Primary (UEH Schedule)', isSecondary: false };
 }
 
 export async function fetchGoogleEvents(token, timeMin, timeMax, calendarId = 'primary') {
@@ -546,7 +546,7 @@ export async function syncScheduleToGoogleCalendar(token, scheduleData, options 
     });
   }
 
-  // 1. Get or create calendar with label "FTU Schedule"
+  // 1. Get or create calendar with label "UEH Schedule"
   const { calendarId, calendarName } = await getOrCreateFtuCalendar(token);
 
   // 2. Filter weeks based on scope
@@ -678,7 +678,7 @@ export async function syncScheduleToGoogleCalendar(token, scheduleData, options 
     ].filter(Boolean).join('\n');
 
     const expectedProperties = {
-      app: 'ftu-calendar-sync',
+      app: 'ueh-calendar-sync',
       id_tkb: String(item.id_tkb || ''),
       courseCode: String(courseCode),
       ma_mon: String(courseCode),

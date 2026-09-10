@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
-  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzTG6AopoaVr87P3kttLjXVXfQ1NRhqPxl+pD7IFQAIlupmG0ndlRvs60IsD3JD59SHwb/YVXJkx02NU0JLFEWo8+TDBrAHdDamVb8ri9q1O5lNTYh1LB0iXReGRCKdfjo8Knw6Xq8wNuFOJLb0OPm6M9MWNGDX+FneKIEoa65Uwg2VaxI3LKuJm96mBz/+bsXrZnHC8MIU9Q5TWuyY0AgqUdwWVg3XwUWVt9wJoNGK7jj84pOg4z76WSr1zqRP1vj9RrKFUQUMdLr81evpQ20eR2ms1hVzlwSnuzWfBTtfNmcoBL1OTeDHQi75I1nXN88h+69UuUiTC+IgP2Iwr4iQIDAQAB",
-  "name": "FTU Schedule Sync",
-  "version": "1.2.0",
-  "description": "Synchronize university class schedules with Google Calendar.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnjVS79zVsvgt7ClTGf6goBuCQNZxWww0fWEk2tCKsKmf+6EaE+1nS2+CqyZG9tuGxJBG7pglY20NpFZiccNX74FMTiW2xOC3WYa8C4jcNYoR1DWX/5EB+M1CybAZ3mu6Hal5leMgd+8HBTAHaQ95rznzNQoLoAe205cMmrA0f/SxyflXeHD4U4SfGSv/pzolsKSbGM1jM+QKKaLCFBCrCJQL7WSxqMmcJomXs/nNzZa2OJI38fsnaOgRQyo7Y7uPhN67fKcaMuvFutBv32XK8vmTT3hpZsc4IuCHAbMHftGHDUuiJCIHI3gPHVN0JS3nZwvhYF+jFC9fWwhYw4ct3QIDAQAB",
+  "name": "UEH Schedule Sync - Lịch học UEH",
+  "short_name": "UEH Schedule",
+  "description": "Bilingual extension for UEH students to sync schedules directly with Google Calendar.",
   "action": {
     "default_popup": "extension/popup.html"
   },
@@ -20,7 +20,8 @@
     "scripting"
   ],
   "host_permissions": [
-    "*://qldt.hcmc.ftu.edu.vn/*",
+    "*://student.ueh.edu.vn/*",
+    "*://online.ueh.edu.vn/*",
     "https://www.googleapis.com/*"
   ],
   "oauth2": {

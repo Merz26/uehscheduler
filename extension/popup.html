@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FTU Schedule Sync</title>
+  <title>UEH Schedule Sync</title>
   <link rel="stylesheet" href="popup.css">
 </head>
 <body class="theme-light" style="width: 390px; height: 590px;">
@@ -16,7 +16,7 @@
       <div class="brand">
         <span class="brand-icon">🎓</span>
         <div class="brand-text">
-          <h1 id="ui_top_title" class="brand-title">FTU Schedule Sync</h1>
+          <h1 id="ui_top_title" class="brand-title">UEH Schedule Sync</h1>
           <div class="brand-subtitle">
             <span id="active_semester_chip" class="chip chip-primary">HK 20261</span>
             <span id="header_portal_indicator" class="status-dot dot-gray" title="Portal Status"></span>
@@ -45,7 +45,7 @@
         <span class="alert-icon">⚠️</span>
         <div class="alert-text">
           <strong id="ui_alert_title">Cần kết nối tài khoản</strong>
-          <p id="ui_alert_desc" class="text-xs">Vui lòng kết nối Google Calendar và Cổng Đào Tạo FTU để bắt đầu đồng bộ thời khóa biểu.</p>
+          <p id="ui_alert_desc" class="text-xs">Vui lòng kết nối Google Calendar và Cổng Đào Tạo UEH để bắt đầu đồng bộ thời khóa biểu.</p>
         </div>
       </div>
 
@@ -120,7 +120,7 @@
             <span class="section-icon">📅</span>
             <div>
               <div class="text-xs text-muted" id="ui_target_calendar_label">Lịch Google Calendar đích</div>
-              <div class="font-semibold text-sm" id="ui_target_calendar_name">FTU Schedule</div>
+              <div class="font-semibold text-sm" id="ui_target_calendar_name">UEH Schedule</div>
             </div>
             <span class="badge badge-primary ml-auto" id="target_cal_badge">Secondary</span>
           </div>
@@ -313,13 +313,13 @@
           </div>
         </div>
 
-        <!-- FTU Student Portal Account Card -->
+        <!-- UEH Student Portal Account Card -->
         <div class="card account-box" id="portal_account_card">
           <div class="account-card-header">
             <div class="account-avatar portal-avatar">🎓</div>
             <div class="account-meta">
               <div class="account-name-row">
-                <span class="font-semibold text-sm" id="ui_portal_account">Cổng Đào Tạo FTU</span>
+                <span class="font-semibold text-sm" id="ui_portal_account">Cổng Đào Tạo UEH</span>
                 <span id="badge_portal_status" class="badge badge-red">Chưa kết nối</span>
               </div>
               <div id="portal_student_name_display" class="text-xs text-muted">Chưa xác thực thông tin</div>

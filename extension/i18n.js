@@ -1,7 +1,7 @@
 export const dict = {
   en: {
-    top_title: "FTU Schedule Sync",
-    title: "FTU Schedule Sync",
+    top_title: "UEH Schedule Sync",
+    title: "UEH Schedule Sync",
     version: "Version",
     client_side_badge: "100% Client-Side • No Third-Party Server",
     
@@ -13,8 +13,8 @@ export const dict = {
 
     // Route guard & alerts
     alert_title: "Account Connection Required",
-    alert_desc: "Please connect your Google Calendar and FTU Student Portal to start schedule synchronization.",
-    route_guard_alert: "Authentication Required: Please connect your Google Calendar and FTU Student Portal to enable automatic schedule synchronization.",
+    alert_desc: "Please connect your Google Calendar and UEH Student Portal to start schedule synchronization.",
+    route_guard_alert: "Authentication Required: Please connect your Google Calendar and UEH Student Portal to enable automatic schedule synchronization.",
     
     // Schedule Tab
     schedule_title: "Class Timetable",
@@ -25,7 +25,7 @@ export const dict = {
     no_classes_today: "No classes today! 🎉",
     select_week: "Select Week",
     btn_refresh_week: "Fetch Schedule",
-    loading_schedule: "Loading schedule from FTU...",
+    loading_schedule: "Loading schedule from UEH...",
     loading_weeks: "Loading weeks list...",
     expand_all: "Expand All",
     collapse_all: "Collapse All",
@@ -47,7 +47,7 @@ export const dict = {
     sync_title: "Calendar Synchronization",
     sync_desc: "Automatically checks for clashes and updates classroom info when changes occur on the Portal.",
     target_calendar_label: "Target Google Calendar",
-    target_calendar_name: "FTU Schedule (Google Calendar)",
+    target_calendar_name: "UEH Schedule (Google Calendar)",
     last_sync_indicator_title: "Last Successful Sync",
     last_sync_never: "No successful synchronization recorded yet",
     last_sync_syncing: "Synchronizing with Google Calendar...",
@@ -108,8 +108,8 @@ export const dict = {
     google_authorized: "Connected",
     disconnected: "Not Connected",
     
-    portal_account: "FTU Student Portal",
-    portal_desc: "Connects directly to qldt.hcmc.ftu.edu.vn private APIs.",
+    portal_account: "UEH Student Portal",
+    portal_desc: "Connects directly to student.ueh.edu.vn private APIs.",
     portal_credentials: "Portal Credentials",
     edit_creds: "Edit",
     student_id: "Student ID",
@@ -167,8 +167,8 @@ export const dict = {
   },
 
   vi: {
-    top_title: "FTU Schedule Sync",
-    title: "Đồng bộ TKB FTU",
+    top_title: "UEH Schedule Sync",
+    title: "Đồng bộ TKB UEH",
     version: "Phiên bản",
     client_side_badge: "100% Phía Client • Không Máy Chủ Trung Gian",
     
@@ -180,8 +180,8 @@ export const dict = {
 
     // Route guard & alerts
     alert_title: "Cần kết nối tài khoản",
-    alert_desc: "Vui lòng kết nối Google Calendar và Cổng Đào Tạo FTU để bắt đầu đồng bộ thời khóa biểu.",
-    route_guard_alert: "Yêu cầu kết nối: Vui lòng kết nối Google Calendar và Cổng Đào Tạo FTU để bắt đầu đồng bộ thời khóa biểu.",
+    alert_desc: "Vui lòng kết nối Google Calendar và Cổng Đào Tạo UEH để bắt đầu đồng bộ thời khóa biểu.",
+    route_guard_alert: "Yêu cầu kết nối: Vui lòng kết nối Google Calendar và Cổng Đào Tạo UEH để bắt đầu đồng bộ thời khóa biểu.",
 
     // Schedule Tab
     schedule_title: "Thời khóa biểu",
@@ -192,7 +192,7 @@ export const dict = {
     no_classes_today: "Hôm nay không có tiết học nào! 🎉",
     select_week: "Chọn tuần học",
     btn_refresh_week: "Tải lịch",
-    loading_schedule: "Đang tải lịch học từ FTU...",
+    loading_schedule: "Đang tải lịch học từ UEH...",
     loading_weeks: "Đang tải danh sách tuần...",
     expand_all: "Mở tất cả",
     collapse_all: "Thu gọn",
@@ -214,7 +214,7 @@ export const dict = {
     sync_title: "Đồng bộ Lịch Google",
     sync_desc: "Hệ thống tự động kiểm tra trùng lặp và cập nhật phòng học khi có thay đổi từ Cổng Đào Tạo.",
     target_calendar_label: "Lịch Google Calendar đích",
-    target_calendar_name: "FTU Schedule (Google Calendar)",
+    target_calendar_name: "UEH Schedule (Google Calendar)",
     last_sync_indicator_title: "Lần đồng bộ thành công gần nhất",
     last_sync_never: "Chưa có lịch sử đồng bộ thành công",
     last_sync_syncing: "Đang tiến hành đồng bộ với Google Calendar...",
@@ -275,8 +275,8 @@ export const dict = {
     google_authorized: "Đã xác thực",
     disconnected: "Chưa kết nối",
 
-    portal_account: "Cổng Đào Tạo FTU",
-    portal_desc: "Giao tiếp trực tiếp với REST API qldt.hcmc.ftu.edu.vn.",
+    portal_account: "Cổng Đào Tạo UEH",
+    portal_desc: "Giao tiếp trực tiếp với REST API student.ueh.edu.vn.",
     portal_credentials: "Thông tin đăng nhập Cổng",
     edit_creds: "Chỉnh sửa",
     student_id: "Mã sinh viên",

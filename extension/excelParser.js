@@ -1,26 +1,27 @@
 export const PERIOD_MAP = {
-  1: { start: '06:45', end: '09:00' }, // Shift 1 (Tiết 1 to 3)
-  4: { start: '09:15', end: '11:30' }, // Shift 2 (Tiết 4 to 6)
-  7: { start: '12:45', end: '15:00' }, // Shift 3 (Tiết 7 to 9)
-  10: { start: '15:15', end: '17:30' } // Shift 4 (Tiết 10 to 12)
+  1: { start: '07:00', end: '09:25' }, // Tiết 1-3
+  4: { start: '09:35', end: '12:00' }, // Tiết 4-6
+  7: { start: '12:45', end: '15:10' }, // Tiết 7-9
+  10: { start: '15:20', end: '17:45' }, // Tiết 10-12
+  13: { start: '18:00', end: '20:25' }  // Tiết 13-15
 };
 
 export const INDIVIDUAL_PERIOD_TIMES = {
-  1: { start: '06:45', end: '07:30' },
-  2: { start: '07:30', end: '08:15' },
-  3: { start: '08:15', end: '09:00' },
-  4: { start: '09:15', end: '10:00' },
-  5: { start: '10:00', end: '10:45' },
-  6: { start: '10:45', end: '11:30' },
+  1: { start: '07:00', end: '07:45' },
+  2: { start: '07:50', end: '08:35' },
+  3: { start: '08:40', end: '09:25' },
+  4: { start: '09:35', end: '10:20' },
+  5: { start: '10:25', end: '11:10' },
+  6: { start: '11:15', end: '12:00' },
   7: { start: '12:45', end: '13:30' },
-  8: { start: '13:30', end: '14:15' },
-  9: { start: '14:15', end: '15:00' },
-  10: { start: '15:15', end: '16:00' },
-  11: { start: '16:00', end: '16:45' },
-  12: { start: '16:45', end: '17:30' },
-  13: { start: '17:45', end: '18:30' },
-  14: { start: '18:30', end: '19:15' },
-  15: { start: '19:15', end: '20:00' }
+  8: { start: '13:35', end: '14:20' },
+  9: { start: '14:25', end: '15:10' },
+  10: { start: '15:20', end: '16:05' },
+  11: { start: '16:10', end: '16:55' },
+  12: { start: '17:00', end: '17:45' },
+  13: { start: '18:00', end: '18:45' },
+  14: { start: '18:50', end: '19:35' },
+  15: { start: '19:40', end: '20:25' }
 };
 
 export function formatICSDateLocal(date) {
@@ -38,15 +39,15 @@ export function generateICS(events) {
   let ics = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//FTU Schedule Sync//EN',
+    'PRODID:-//UEH Schedule Sync//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
-    'X-WR-CALNAME:FTU Schedule',
+    'X-WR-CALNAME:UEH Schedule',
     'X-WR-TIMEZONE:Asia/Ho_Chi_Minh'
   ];
 
   events.forEach((ev, idx) => {
-    const uid = `ftu_evt_${Date.now()}_${idx}@qldt.hcmc.ftu.edu.vn`;
+    const uid = `ueh_evt_${Date.now()}_${idx}@student.ueh.edu.vn`;
     ics.push(
       'BEGIN:VEVENT',
       `UID:${uid}`,
@@ -76,7 +77,7 @@ export function generateMakeupICS(events) {
   return generateICS(makeupEvents);
 }
 
-export function downloadICS(icsContent, filename = 'schedule.ics') {
+export function downloadICS(icsContent, filename = 'ueh_schedule.ics') {
   const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -103,8 +104,8 @@ export function convertPortalScheduleToEvents(scheduleData) {
       const count = Number(item.so_tiet) || 1;
       const endP = startP + count - 1;
 
-      const startT = INDIVIDUAL_PERIOD_TIMES[startP]?.start || '06:45';
-      const endT = INDIVIDUAL_PERIOD_TIMES[endP]?.end || '09:00';
+      const startT = INDIVIDUAL_PERIOD_TIMES[startP]?.start || '07:00';
+      const endT = INDIVIDUAL_PERIOD_TIMES[endP]?.end || '09:25';
 
       const [sH, sM] = startT.split(':').map(Number);
       const [eH, eM] = endT.split(':').map(Number);
@@ -171,7 +172,7 @@ export function parseExcel(fileBlob) {
 
           if (!startDate || !endDate) return;
 
-          const periodTime = PERIOD_MAP[startPeriod] || INDIVIDUAL_PERIOD_TIMES[startPeriod] || { start: '06:45', end: '09:00' };
+          const periodTime = PERIOD_MAP[startPeriod] || INDIVIDUAL_PERIOD_TIMES[startPeriod] || { start: '07:00', end: '09:25' };
 
           let eventStart = new Date(startDate);
           const targetDay = dayOfWeek === 8 ? 0 : dayOfWeek - 1;
