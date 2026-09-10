@@ -2,6 +2,7 @@
   "manifest_version": 3,
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnjVS79zVsvgt7ClTGf6goBuCQNZxWww0fWEk2tCKsKmf+6EaE+1nS2+CqyZG9tuGxJBG7pglY20NpFZiccNX74FMTiW2xOC3WYa8C4jcNYoR1DWX/5EB+M1CybAZ3mu6Hal5leMgd+8HBTAHaQ95rznzNQoLoAe205cMmrA0f/SxyflXeHD4U4SfGSv/pzolsKSbGM1jM+QKKaLCFBCrCJQL7WSxqMmcJomXs/nNzZa2OJI38fsnaOgRQyo7Y7uPhN67fKcaMuvFutBv32XK8vmTT3hpZsc4IuCHAbMHftGHDUuiJCIHI3gPHVN0JS3nZwvhYF+jFC9fWwhYw4ct3QIDAQAB",
   "name": "UEH Schedule Sync - Lịch học UEH",
+  "version": "1.2.0",
   "short_name": "UEH Schedule",
   "description": "Bilingual extension for UEH students to sync schedules directly with Google Calendar.",
   "action": {
