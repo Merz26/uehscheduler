@@ -163,7 +163,27 @@ export const dict = {
     link_tos_title: "Terms of Service (TOS)",
     link_tos_desc: "Usage guidelines & legal terms",
     link_privacy_title: "Privacy Policy",
-    link_privacy_desc: "100% local client-side security promise"
+    link_privacy_desc: "100% local client-side security promise",
+
+    // Updates
+    update_available_title: "New Update Available!",
+    update_available_desc: "A newer release is available on GitHub. Update to get the latest features and bug fixes.",
+    btn_update_now: "Update Now (GitHub)",
+    btn_dismiss_update: "Dismiss",
+    btn_dont_show_again: "Don't show again for this release",
+    opt_out_updates: "Disable update checks entirely",
+    updates_section_title: "App Updates",
+    updates_section_desc: "Check for new releases from GitHub repository.",
+    updates_auto_check_label: "Auto-check for updates",
+    btn_check_updates_now: "Check for Updates",
+    status_checking_updates: "Checking GitHub releases...",
+    status_up_to_date: "✓ Up to date",
+    status_update_found: "New release found",
+    status_update_error: "Unable to check releases",
+    current_version: "Current Version",
+    latest_version: "Latest Version",
+    session_prefix: "Session",
+    semester_prefix: "Sem"
   },
 
   vi: {
@@ -330,7 +350,27 @@ export const dict = {
     link_tos_title: "Điều khoản dịch vụ (TOS)",
     link_tos_desc: "Quy định sử dụng & miễn trừ trách nhiệm",
     link_privacy_title: "Chính sách bảo mật",
-    link_privacy_desc: "Cam kết bảo mật 100% dữ liệu cục bộ"
+    link_privacy_desc: "Cam kết bảo mật 100% dữ liệu cục bộ",
+
+    // Updates
+    update_available_title: "Có bản cập nhật mới!",
+    update_available_desc: "Đã có phiên bản mới hơn trên GitHub. Hãy cập nhật để nhận các tính năng mới nhất và sửa lỗi.",
+    btn_update_now: "Cập nhật ngay (GitHub)",
+    btn_dismiss_update: "Bỏ qua lần này",
+    btn_dont_show_again: "Không hiện lại cho bản này",
+    opt_out_updates: "Tắt tự động kiểm tra cập nhật",
+    updates_section_title: "Cập nhật ứng dụng",
+    updates_section_desc: "Kiểm tra phiên bản mới nhất từ kho mã nguồn GitHub.",
+    updates_auto_check_label: "Tự động kiểm tra cập nhật",
+    btn_check_updates_now: "Kiểm tra bản cập nhật",
+    status_checking_updates: "Đang kiểm tra GitHub releases...",
+    status_up_to_date: "✓ Đang dùng bản mới nhất",
+    status_update_found: "Có bản mới phát hành",
+    status_update_error: "Không thể kiểm tra lúc này",
+    current_version: "Phiên bản hiện tại",
+    latest_version: "Phiên bản mới nhất",
+    session_prefix: "Ca",
+    semester_prefix: "HK"
   }
 };
 

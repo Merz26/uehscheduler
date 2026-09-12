@@ -14,7 +14,7 @@
     <!-- Top Bar -->
     <header class="top-bar">
       <div class="brand">
-        <span class="brand-icon">🎓</span>
+        <img src="ueh_logo.png" alt="UEH Logo" class="brand-logo-img">
         <div class="brand-text">
           <h1 id="ui_top_title" class="brand-title">UEH Schedule Sync</h1>
           <div class="brand-subtitle">
@@ -37,6 +37,35 @@
         </button>
       </div>
     </header>
+
+    <!-- Non-Intrusive Update Notification Banner / Toast Overlay -->
+    <div id="update_notification_overlay" class="update-banner" style="display: none;">
+      <div class="update-banner-header">
+        <div class="update-banner-icon">✨</div>
+        <div class="update-banner-text">
+          <div class="update-title-row">
+            <span id="ui_update_available_title" class="update-banner-title">Có bản cập nhật mới!</span>
+            <span id="update_badge_version" class="update-version-badge">v1.3.1</span>
+          </div>
+          <p id="ui_update_available_desc" class="update-banner-desc">Đã có phiên bản mới hơn trên GitHub.</p>
+        </div>
+        <button id="btn_dismiss_update_close" class="update-close-btn" title="Bỏ qua" aria-label="Dismiss">&times;</button>
+      </div>
+      <div class="update-banner-actions">
+        <a id="link_update_release" href="https://github.com/Merz26/ftuscheduler/releases/latest" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-xs update-cta-btn">
+          <span id="ui_btn_update_now">Cập nhật ngay</span> ↗
+        </a>
+        <button id="btn_dont_show_again" class="btn btn-ghost btn-xs">
+          <span id="ui_btn_dont_show_again">Không hiện lại</span>
+        </button>
+      </div>
+      <div class="update-banner-footer">
+        <label class="update-optout-label">
+          <input type="checkbox" id="chk_update_optout">
+          <span id="ui_opt_out_updates">Tắt tự động kiểm tra cập nhật</span>
+        </label>
+      </div>
+    </div>
 
     <!-- Main Scrollable Content Container -->
     <main class="main-content" id="main_content">
@@ -296,7 +325,9 @@
         <!-- Google Calendar Account Card -->
         <div class="card account-box" id="google_account_card">
           <div class="account-card-header">
-            <div class="account-avatar google-avatar">🇬</div>
+            <div class="account-avatar google-avatar">
+              <img src="google_logo.jpg" alt="Google" class="account-avatar-img">
+            </div>
             <div class="account-meta">
               <div class="account-name-row">
                 <span class="font-semibold text-sm" id="ui_google_account">Tài khoản Google</span>
@@ -316,7 +347,9 @@
         <!-- UEH Student Portal Account Card -->
         <div class="card account-box" id="portal_account_card">
           <div class="account-card-header">
-            <div class="account-avatar portal-avatar">🎓</div>
+            <div class="account-avatar portal-avatar">
+              <img src="ueh_logo.png" alt="UEH" class="account-avatar-img">
+            </div>
             <div class="account-meta">
               <div class="account-name-row">
                 <span class="font-semibold text-sm" id="ui_portal_account">Cổng Đào Tạo UEH</span>
@@ -429,11 +462,37 @@
           </div>
         </div>
 
+        <!-- App Updates Card -->
+        <div class="card update-settings-card">
+          <div class="setting-row">
+            <div>
+              <h3 class="card-title text-sm" id="ui_updates_section_title">Cập nhật ứng dụng</h3>
+              <p class="text-xs text-muted" id="ui_updates_section_desc">Kiểm tra phiên bản mới nhất từ kho mã nguồn GitHub.</p>
+            </div>
+            <span class="version-tag" id="current_version_badge">v1.3.1</span>
+          </div>
+
+          <div class="setting-row mt-3">
+            <span class="setting-label text-xs" id="ui_updates_auto_check_label">Tự động kiểm tra cập nhật</span>
+            <label class="switch">
+              <input type="checkbox" id="toggle_auto_update_checks" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="mt-3">
+            <button id="btn_manual_check_updates" class="btn btn-outline btn-block btn-sm">
+              <span id="ui_btn_check_updates_now">Kiểm tra bản cập nhật</span>
+            </button>
+          </div>
+          <div id="update_check_status_msg" class="text-xs text-muted mt-2" style="display: none;"></div>
+        </div>
+
         <!-- About & Privacy Card -->
         <div class="card about-card">
           <div class="about-header">
             <span class="font-semibold text-sm" id="ui_about_title">Thông tin & Quyền riêng tư</span>
-            <span class="version-tag" id="app_version_tag">v1.2.0</span>
+            <span class="version-tag" id="app_version_tag">v1.3.1</span>
           </div>
           <p class="text-xs text-muted mb-2" id="ui_privacy_notice">
             Tiện ích hoạt động 100% trên thiết bị của bạn. Thông tin đăng nhập và dữ liệu lịch được lưu an toàn trong trình duyệt và không bao giờ gửi tới bất kỳ máy chủ trung gian nào.
@@ -445,25 +504,25 @@
 
           <!-- Documentation, TOS & Privacy Links to GitHub Wiki -->
           <div class="about-links-section">
-            <a href="https://github.com/Merz26/ftuschedule/wiki" target="_blank" rel="noopener noreferrer" class="about-link-row" id="link_repo_wiki">
+            <a href="https://github.com/Merz26/ftuscheduler/wiki" target="_blank" rel="noopener noreferrer" class="about-link-row" id="link_repo_wiki">
               <span class="about-link-icon">📖</span>
               <div class="about-link-info">
                 <span class="about-link-title" id="ui_link_wiki_title">Wiki & Hướng dẫn sử dụng</span>
-                <span class="about-link-desc text-muted" id="ui_link_wiki_desc">github.com/Merz26/ftuschedule/wiki</span>
+                <span class="about-link-desc text-muted" id="ui_link_wiki_desc">github.com/Merz26/ftuscheduler</span>
               </div>
               <span class="about-link-ext">↗</span>
             </a>
 
-            <a href="https://github.com/Merz26/ftuschedule/wiki" target="_blank" rel="noopener noreferrer" class="about-link-row" id="link_tos">
+            <a href="https://github.com/Merz26/ftuscheduler" target="_blank" rel="noopener noreferrer" class="about-link-row" id="link_tos">
               <span class="about-link-icon">📜</span>
               <div class="about-link-info">
-                <span class="about-link-title" id="ui_link_tos_title">Điều khoản dịch vụ (TOS)</span>
-                <span class="about-link-desc text-muted" id="ui_link_tos_desc">Quy định sử dụng & miễn trừ trách nhiệm</span>
+                <span class="about-link-title" id="ui_link_tos_title">Mã nguồn & Releases</span>
+                <span class="about-link-desc text-muted" id="ui_link_tos_desc">Kho mã nguồn chính thức trên GitHub</span>
               </div>
               <span class="about-link-ext">↗</span>
             </a>
 
-            <a href="https://github.com/Merz26/ftuschedule/wiki" target="_blank" rel="noopener noreferrer" class="about-link-row" id="link_privacy_policy">
+            <a href="https://github.com/Merz26/ftuscheduler" target="_blank" rel="noopener noreferrer" class="about-link-row" id="link_privacy_policy">
               <span class="about-link-icon">🔒</span>
               <div class="about-link-info">
                 <span class="about-link-title" id="ui_link_privacy_title">Chính sách bảo mật</span>

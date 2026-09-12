@@ -33,6 +33,21 @@ import {
   convertPortalScheduleToEvents
 } from './excelParser.js';
 
+import {
+  formatSemester,
+  normalizeRoom,
+  mapSession,
+  sanitizeScheduleItem,
+  sanitizeScheduleData
+} from './dataTransformer.js';
+
+import {
+  checkExtensionUpdate,
+  dismissUpdateNotification,
+  setUpdateOptOut,
+  getLocalVersion
+} from './versionService.js';
+
 // Global state in popup session
 let state = {
   activeView: 'view_schedule',
@@ -47,7 +62,9 @@ let state = {
   theme: 'light',
   lang: 'vi',
   lastSyncTimestamp: null,
-  lastSyncInfo: null
+  lastSyncInfo: null,
+  updateInfo: null,
+  optOutUpdates: false
 };
 
 /**
@@ -221,6 +238,13 @@ async function initApp() {
   } catch (err) {
     console.warn('[UEH Sync] Initial connection check warning:', err);
   }
+
+  // 5. Initialize automated update notification system
+  try {
+    await initUpdateNotificationSystem();
+  } catch (err) {
+    console.warn('[UEH Sync] Update notification init warning:', err);
+  }
 }
 
 if (document.readyState === 'loading') {
@@ -256,11 +280,11 @@ async function loadStoredPreferences() {
 
         // Restore cached schedule if available so UI renders immediately
         if (res.cachedSchedule && res.cachedSchedule.ds_tuan_tkb) {
-          state.scheduleData = res.cachedSchedule;
           if (res.semesterInfo) state.semesterInfo = res.semesterInfo;
+          state.scheduleData = sanitizeScheduleData(res.cachedSchedule, state.semesterInfo, getLang());
           const chip = document.getElementById('active_semester_chip');
           if (chip && state.semesterInfo) {
-            chip.textContent = state.semesterInfo.ten_hoc_ky || `HK ${state.semesterInfo.hoc_ky}`;
+            chip.textContent = formatSemester(state.semesterInfo, getLang());
           }
           renderTodayView();
           populateWeekSelector();
@@ -283,10 +307,20 @@ async function loadStoredPreferences() {
         if (inputTime && res.autoSyncTime) inputTime.value = res.autoSyncTime;
         if (groupDay) groupDay.style.display = res.autoSyncFreq === 'weekly' ? 'block' : 'none';
 
-        // App version tag
-        const ver = (typeof chrome !== 'undefined' && chrome.runtime?.getManifest?.()?.version) || '1.2.0';
+        // App version tag & badges
+        const ver = getLocalVersion();
         const verTag = document.getElementById('app_version_tag');
         if (verTag) verTag.textContent = `v${ver}`;
+        const curVerTag = document.getElementById('current_version_badge');
+        if (curVerTag) curVerTag.textContent = `v${ver}`;
+
+        if (res.optOutUpdateChecks !== undefined) {
+          state.optOutUpdates = Boolean(res.optOutUpdateChecks);
+          const chkOptOut = document.getElementById('chk_update_optout');
+          if (chkOptOut) chkOptOut.checked = state.optOutUpdates;
+          const toggleAutoUpdates = document.getElementById('toggle_auto_update_checks');
+          if (toggleAutoUpdates) toggleAutoUpdates.checked = !state.optOutUpdates;
+        }
 
         // Restore last successful sync timestamp and details
         if (res.lastSyncTimestamp) {
@@ -316,7 +350,8 @@ async function loadStoredPreferences() {
           'cachedSchedule',
           'semesterInfo',
           'lastSyncTimestamp',
-          'lastSyncInfo'
+          'lastSyncInfo',
+          'optOutUpdateChecks'
         ], applyData);
       } catch (e) {
         applyData({});
@@ -415,11 +450,11 @@ async function loadScheduleData(forceRefresh = false) {
     });
 
     if (cached.cachedSchedule && cached.cachedSchedule.ds_tuan_tkb) {
-      state.scheduleData = cached.cachedSchedule;
       if (cached.semesterInfo) state.semesterInfo = cached.semesterInfo;
+      state.scheduleData = sanitizeScheduleData(cached.cachedSchedule, state.semesterInfo, getLang());
       const chip = document.getElementById('active_semester_chip');
       if (chip && state.semesterInfo) {
-        chip.textContent = state.semesterInfo.ten_hoc_ky || `HK ${state.semesterInfo.hoc_ky}`;
+        chip.textContent = formatSemester(state.semesterInfo, getLang());
       }
       renderTodayView();
       populateWeekSelector();
@@ -447,10 +482,11 @@ async function loadScheduleData(forceRefresh = false) {
       state.semesterInfo = await getActiveSemesterInfo(token);
       const chip = document.getElementById('active_semester_chip');
       if (chip && state.semesterInfo) {
-        chip.textContent = state.semesterInfo.ten_hoc_ky || `HK ${state.semesterInfo.hoc_ky}`;
+        chip.textContent = formatSemester(state.semesterInfo, getLang());
       }
 
-      state.scheduleData = await getSchedule(token, state.semesterInfo.hoc_ky);
+      const rawSchedule = await getSchedule(token, state.semesterInfo.hoc_ky);
+      state.scheduleData = sanitizeScheduleData(rawSchedule, state.semesterInfo, getLang());
       state.portalVerification = { verified: true, verifiedAt: new Date().toISOString() };
 
       if (typeof chrome !== 'undefined' && chrome.storage?.local) {
@@ -474,10 +510,11 @@ async function loadScheduleData(forceRefresh = false) {
 
   // 3. Fallback: If no live data and no cache (e.g. preview mode or first run without credentials)
   if (!state.scheduleData || !state.scheduleData.ds_tuan_tkb) {
-    state.scheduleData = generateDefaultUehSchedule();
+    const rawSchedule = generateDefaultUehSchedule();
     state.semesterInfo = { hoc_ky: 20261, ten_hoc_ky: 'Học kỳ 1 (2026 - 2027)' };
+    state.scheduleData = sanitizeScheduleData(rawSchedule, state.semesterInfo, getLang());
     const chip = document.getElementById('active_semester_chip');
-    if (chip) chip.textContent = state.semesterInfo.ten_hoc_ky;
+    if (chip) chip.textContent = formatSemester(state.semesterInfo, getLang());
 
     renderTodayView();
     populateWeekSelector();
@@ -539,6 +576,8 @@ function renderTodayView() {
 
 /**
  * Builds a class DOM card element with period pill, room, lecturer, and tags.
+ * Applies session mapping (1-3 -> Ca 1, 4-6 -> Ca 2, 7-9 -> Ca 3, 10-12 -> Ca 4)
+ * and room string normalization (e.g. PHA503-PHA503 -> A503) with room-highlighting.
  */
 function createClassCard(item) {
   const card = document.createElement('div');
@@ -553,9 +592,19 @@ function createClassCard(item) {
   const endT = PERIOD_TIMES[endP]?.end || '09:00';
   const courseCode = item.ma_mon || extractCourseCode(item.ten_mon);
 
+  // 1. Session Mapping: 1-3 -> Ca 1, 4-6 -> Ca 2, 7-9 -> Ca 3, 10-12 -> Ca 4, evening remains unchanged
+  const sessionInfo = mapSession(startP, endP, getLang());
+  const sessionLabel = sessionInfo.label;
+
+  // 2. Room Normalization: Truncate room string (e.g. PHA503-PHA503 -> A503) and isolate/highlight room number
+  const roomInfo = normalizeRoom(item.ma_phong || item.phong || '');
+  const roomDisplayHtml = roomInfo.isAssigned
+    ? `${t('room')}: ${roomInfo.html}`
+    : `${t('room')}: <span class="text-muted room-empty">${getLang() === 'en' ? 'Unassigned' : 'Chưa xếp'}</span>`;
+
   card.innerHTML = `
     <div class="class-time-row">
-      <span class="period-pill">⚡ ${t('period')} ${startP} - ${endP}</span>
+      <span class="period-pill">⚡ ${sessionLabel}</span>
       <span class="time-range">${startT} - ${endT}</span>
     </div>
     <div class="class-title">
@@ -563,7 +612,7 @@ function createClassCard(item) {
       ${courseCode ? `<span class="text-xs text-muted">(${courseCode})</span>` : ''}
     </div>
     <div class="class-meta-row">
-      <span class="meta-pill">📍 ${item.ma_phong ? `Phòng ${item.ma_phong}` : t('room') + ': Chưa xếp'}</span>
+      <span class="meta-pill">📍 ${roomDisplayHtml}</span>
       <span class="meta-pill">👨‍🏫 ${item.ten_giang_vien || t('lecturer') + ': Chưa cập nhật'}</span>
       ${isMakeup ? `<span class="tag-makeup">${t('makeup_tag')}</span>` : ''}
     </div>
@@ -863,8 +912,7 @@ function updateI18nLabels() {
   // Active Semester Chip
   const semChip = document.getElementById('active_semester_chip');
   if (semChip) {
-    const semCode = state.semesterInfo?.ma_hoc_ky || '20261';
-    semChip.textContent = current === 'en' ? `Sem ${semCode}` : `HK ${semCode}`;
+    semChip.textContent = formatSemester(state.semesterInfo || { hoc_ky: 20261 }, current);
   }
 
   // Update account cards and badges
@@ -1611,4 +1659,147 @@ function renderConnectionIndicators(portalStatus, googleStatus) {
   if (gDot) {
     gDot.className = `status-dot ${googleStatus === 'ok' ? 'dot-green' : googleStatus === 'err' ? 'dot-red' : 'dot-amber'}`;
   }
+}
+
+/**
+ * =========================================================================
+ * Automated Update Notification System (GitHub Releases)
+ * =========================================================================
+ */
+let latestUpdateResult = null;
+
+/**
+ * Checks for extension updates from GitHub releases and renders the notification UI.
+ * @param {boolean} force - If true, bypasses dismissal cache and displays explicit status messages.
+ */
+async function checkAndShowUpdateNotification(force = false) {
+  const statusMsg = document.getElementById('update_check_status_msg');
+  const btnManual = document.getElementById('btn_manual_check_updates');
+  const overlay = document.getElementById('update_notification_overlay');
+  const badgeVersion = document.getElementById('update_badge_version');
+  const descEl = document.getElementById('ui_update_available_desc');
+  const linkRelease = document.getElementById('link_update_release');
+
+  if (force && statusMsg) {
+    statusMsg.style.display = 'block';
+    statusMsg.className = 'text-xs text-muted mt-2';
+    statusMsg.textContent = t('status_checking_updates');
+  }
+  if (force && btnManual) {
+    btnManual.disabled = true;
+  }
+
+  try {
+    const res = await checkExtensionUpdate({ force });
+    latestUpdateResult = res;
+
+    if (res.hasUpdate) {
+      if (overlay && (!res.isDismissed || force)) {
+        overlay.style.display = 'flex';
+        if (badgeVersion) {
+          badgeVersion.textContent = res.remoteVersion ? `v${res.remoteVersion}` : res.remoteTag;
+        }
+        if (descEl && res.releaseNotes) {
+          descEl.textContent = res.releaseNotes.slice(0, 140) + (res.releaseNotes.length > 140 ? '...' : '');
+        }
+        if (linkRelease && res.releaseUrl) {
+          linkRelease.href = res.releaseUrl;
+        }
+      }
+
+      if (force && statusMsg) {
+        statusMsg.style.display = 'block';
+        statusMsg.className = 'text-xs text-blue font-semibold mt-2';
+        statusMsg.textContent = `${t('status_update_found')}: ${res.remoteTag || res.remoteVersion}`;
+      }
+    } else {
+      if (overlay && !force) {
+        overlay.style.display = 'none';
+      }
+      if (force && statusMsg) {
+        statusMsg.style.display = 'block';
+        statusMsg.className = 'text-xs text-green font-semibold mt-2';
+        statusMsg.textContent = `${t('status_up_to_date')} (v${res.localVersion})`;
+      }
+    }
+    return res;
+  } catch (err) {
+    console.warn('[Update Check Error]', err);
+    if (force && statusMsg) {
+      statusMsg.style.display = 'block';
+      statusMsg.className = 'text-xs text-red mt-2';
+      statusMsg.textContent = `${t('status_update_error')}: ${err.message || 'Network error'}`;
+    }
+  } finally {
+    if (force && btnManual) {
+      btnManual.disabled = false;
+    }
+  }
+}
+
+/**
+ * Initializes listeners and bindings for the update notification overlay and settings card.
+ */
+async function initUpdateNotificationSystem() {
+  const overlay = document.getElementById('update_notification_overlay');
+  const btnClose = document.getElementById('btn_dismiss_update_close');
+  const btnDontShow = document.getElementById('btn_dont_show_again');
+  const chkOptOut = document.getElementById('chk_update_optout');
+  const toggleAuto = document.getElementById('toggle_auto_update_checks');
+  const btnManual = document.getElementById('btn_manual_check_updates');
+
+  // Load stored preferences for opt out
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    chrome.storage.local.get(['optOutUpdateChecks'], (res) => {
+      const isOptedOut = Boolean(res.optOutUpdateChecks);
+      if (chkOptOut) chkOptOut.checked = isOptedOut;
+      if (toggleAuto) toggleAuto.checked = !isOptedOut;
+    });
+  }
+
+  // Bind close/dismiss banner button
+  if (btnClose && overlay) {
+    btnClose.onclick = () => {
+      overlay.style.display = 'none';
+    };
+  }
+
+  // Bind "Don't show again" button
+  if (btnDontShow && overlay) {
+    btnDontShow.onclick = async () => {
+      const versionToDismiss = latestUpdateResult?.remoteVersion || latestUpdateResult?.remoteTag || 'latest';
+      await dismissUpdateNotification(versionToDismiss);
+      overlay.style.display = 'none';
+    };
+  }
+
+  // Bind opt-out checkbox on banner
+  if (chkOptOut) {
+    chkOptOut.onchange = async (e) => {
+      const checked = e.target.checked;
+      await setUpdateOptOut(checked);
+      if (toggleAuto) toggleAuto.checked = !checked;
+      if (checked && overlay) overlay.style.display = 'none';
+    };
+  }
+
+  // Bind auto-check toggle in Settings
+  if (toggleAuto) {
+    toggleAuto.onchange = async (e) => {
+      const autoChecked = e.target.checked;
+      await setUpdateOptOut(!autoChecked);
+      if (chkOptOut) chkOptOut.checked = !autoChecked;
+      if (!autoChecked && overlay) overlay.style.display = 'none';
+    };
+  }
+
+  // Bind manual check button in Settings
+  if (btnManual) {
+    btnManual.onclick = () => {
+      checkAndShowUpdateNotification(true);
+    };
+  }
+
+  // Run initial automatic check (respects opt-out and dismissal)
+  await checkAndShowUpdateNotification(false);
 }

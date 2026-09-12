@@ -1,27 +1,26 @@
 export const PERIOD_MAP = {
-  1: { start: '07:00', end: '09:25' }, // Tiết 1-3
-  4: { start: '09:35', end: '12:00' }, // Tiết 4-6
-  7: { start: '12:45', end: '15:10' }, // Tiết 7-9
-  10: { start: '15:20', end: '17:45' }, // Tiết 10-12
-  13: { start: '18:00', end: '20:25' }  // Tiết 13-15
+  1: { start: '06:45', end: '09:00' }, // Shift 1 (Tiết 1 to 3)
+  4: { start: '09:15', end: '11:30' }, // Shift 2 (Tiết 4 to 6)
+  7: { start: '12:30', end: '14:45' }, // Shift 3 (Tiết 7 to 9)
+  10: { start: '15:00', end: '17:15' } // Shift 4 (Tiết 10 to 12)
 };
 
 export const INDIVIDUAL_PERIOD_TIMES = {
-  1: { start: '07:00', end: '07:45' },
-  2: { start: '07:50', end: '08:35' },
-  3: { start: '08:40', end: '09:25' },
-  4: { start: '09:35', end: '10:20' },
-  5: { start: '10:25', end: '11:10' },
-  6: { start: '11:15', end: '12:00' },
-  7: { start: '12:45', end: '13:30' },
-  8: { start: '13:35', end: '14:20' },
-  9: { start: '14:25', end: '15:10' },
-  10: { start: '15:20', end: '16:05' },
-  11: { start: '16:10', end: '16:55' },
-  12: { start: '17:00', end: '17:45' },
+  1: { start: '06:45', end: '07:30' },
+  2: { start: '07:30', end: '08:15' },
+  3: { start: '08:15', end: '09:00' },
+  4: { start: '09:15', end: '10:00' },
+  5: { start: '10:00', end: '10:45' },
+  6: { start: '10:45', end: '11:30' },
+  7: { start: '12:30', end: '13:15' },
+  8: { start: '13:15', end: '14:00' },
+  9: { start: '14:00', end: '14:45' },
+  10: { start: '15:00', end: '15:45' },
+  11: { start: '15:45', end: '16:30' },
+  12: { start: '16:30', end: '17:15' },
   13: { start: '18:00', end: '18:45' },
-  14: { start: '18:50', end: '19:35' },
-  15: { start: '19:40', end: '20:25' }
+  14: { start: '18:45', end: '19:30' },
+  15: { start: '19:30', end: '20:15' }
 };
 
 export function formatICSDateLocal(date) {
@@ -172,7 +171,7 @@ export function parseExcel(fileBlob) {
 
           if (!startDate || !endDate) return;
 
-          const periodTime = PERIOD_MAP[startPeriod] || INDIVIDUAL_PERIOD_TIMES[startPeriod] || { start: '07:00', end: '09:25' };
+          const periodTime = PERIOD_MAP[startPeriod] || INDIVIDUAL_PERIOD_TIMES[startPeriod] || { start: '06:45', end: '09:00' };
 
           let eventStart = new Date(startDate);
           const targetDay = dayOfWeek === 8 ? 0 : dayOfWeek - 1;

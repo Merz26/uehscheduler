@@ -1,13 +1,17 @@
 import { getSessionToken, getActiveSemesterInfo, getSchedule } from './portalService.js';
 import { syncScheduleToGoogleCalendar, checkAuth } from './calendarService.js';
+import { checkExtensionUpdate, dismissUpdateNotification, setUpdateOptOut } from './versionService.js';
 
 // Background Service Worker (Manifest V3)
 
 // Listen for alarm triggers
 chrome.alarms.onAlarm.addListener(async (alarm) => {
-  if (alarm.name === 'uehAutoSyncAlarm') {
+  if (alarm.name === 'uehAutoSyncAlarm' || alarm.name === 'ftuAutoSyncAlarm') {
     console.log('[Background Service Worker] Executing scheduled auto-sync...');
     await runScheduledBackgroundSync();
+  } else if (alarm.name === 'uehVersionCheckAlarm' || alarm.name === 'ftuVersionCheckAlarm') {
+    console.log('[Background Service Worker] Checking for extension updates...');
+    await checkExtensionUpdate({ force: false });
   }
 });
 
@@ -30,6 +34,27 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'TRIGGER_OFFSCREEN_LOGIN') {
     handleOffscreenLoginRecovery(message.studentId, message.password)
       .then(result => sendResponse({ success: true, result }))
+      .catch(err => sendResponse({ success: false, error: err.message }));
+    return true;
+  }
+
+  if (message.action === 'CHECK_FOR_UPDATES') {
+    checkExtensionUpdate({ force: Boolean(message.force) })
+      .then(result => sendResponse({ success: true, result }))
+      .catch(err => sendResponse({ success: false, error: err.message }));
+    return true;
+  }
+
+  if (message.action === 'DISMISS_UPDATE') {
+    dismissUpdateNotification(message.version)
+      .then(() => sendResponse({ success: true }))
+      .catch(err => sendResponse({ success: false, error: err.message }));
+    return true;
+  }
+
+  if (message.action === 'SET_UPDATE_OPTOUT') {
+    setUpdateOptOut(message.optOut)
+      .then(() => sendResponse({ success: true }))
       .catch(err => sendResponse({ success: false, error: err.message }));
     return true;
   }
@@ -169,3 +194,18 @@ async function runScheduledBackgroundSync() {
 
 // Initialize alarm on extension load
 configureAutoSyncAlarm();
+
+// Configure periodic update check alarm (runs every 12 hours)
+function configureVersionCheckAlarm() {
+  if (typeof chrome !== 'undefined' && chrome.alarms) {
+    chrome.alarms.get('uehVersionCheckAlarm', (existing) => {
+      if (!existing) {
+        chrome.alarms.create('uehVersionCheckAlarm', {
+          periodInMinutes: 720, // 12 hours
+          delayInMinutes: 5     // Initial check after 5 minutes
+        });
+      }
+    });
+  }
+}
+configureVersionCheckAlarm();
